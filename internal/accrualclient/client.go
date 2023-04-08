@@ -76,7 +76,7 @@ func (c *Client) Send(number string) (*models.AccrualOrder, error) {
 			if err != nil {
 				return nil, err
 			}
-			log.Println(b)
+			log.Println(string(b))
 			err = json.Unmarshal(b, &order)
 			if err != nil {
 				return nil, err
@@ -101,7 +101,7 @@ func (c *Client) Send(number string) (*models.AccrualOrder, error) {
 			if err != nil {
 				return nil, err
 			}
-			log.Println(b)
+			log.Println(string(b))
 
 			//do nothing
 		}
