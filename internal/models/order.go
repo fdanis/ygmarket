@@ -32,3 +32,9 @@ func (o *Order) MarshalJSON() ([]byte, error) {
 		Alias:    (*Alias)(o),
 	})
 }
+
+type AccrualOrder struct {
+	Number  string             `json:"order"`
+	Status  common.OrderStatus `json:"status"`
+	Accrual float32            `json:"accrual,omitempty"`
+}

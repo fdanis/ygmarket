@@ -32,6 +32,7 @@ func (c *Client) Run(ctx context.Context) {
 		case <-ctx.Done():
 		default:
 			{
+				log.Printf("was sended %s", v.Number)
 				m, err := c.Send(v.Number)
 				if err != nil {
 					log.Printf("send order number %s : %v\n", v.Number, err)
@@ -50,8 +51,8 @@ func (c *Client) Run(ctx context.Context) {
 	}
 }
 
-func (c *Client) Send(number string) (*models.Order, error) {
-	res, err := http.Post(fmt.Sprintf("%s/api/orders/%s", c.address, number))
+func (c *Client) Send(number string) (*models.AccrualOrder, error) {
+	res, err := http.Get(fmt.Sprintf("%s/api/orders/%s", c.address, number))
 	if err != nil {
 		log.Println(err)
 		return nil, err
@@ -59,7 +60,7 @@ func (c *Client) Send(number string) (*models.Order, error) {
 	switch res.StatusCode {
 	case http.StatusOK:
 		{
-			var order models.Order
+			var order models.AccrualOrder
 			defer res.Body.Close()
 			err := json.NewDecoder(res.Body).Decode(&order)
 			if err != nil {
