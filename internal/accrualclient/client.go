@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"strconv"
@@ -55,8 +56,13 @@ func (c *Client) Run(ctx context.Context) {
 }
 
 func (c *Client) Send(number string) (*models.AccrualOrder, error) {
+
+	log.Printf("send %s \n", number)
 	res, err := http.Get(fmt.Sprintf("%s/api/orders/%s", c.address, number))
 	if err != nil {
+
+		log.Printf("err %s \n", number)
+
 		log.Println(err)
 		return nil, err
 	}
@@ -65,7 +71,13 @@ func (c *Client) Send(number string) (*models.AccrualOrder, error) {
 		{
 			var order models.AccrualOrder
 			defer res.Body.Close()
-			err := json.NewDecoder(res.Body).Decode(&order)
+
+			b, err := io.ReadAll(res.Body)
+			if err != nil {
+				return nil, err
+			}
+			log.Println(b)
+			err = json.Unmarshal(b, &order)
 			if err != nil {
 				return nil, err
 			}
@@ -85,6 +97,12 @@ func (c *Client) Send(number string) (*models.AccrualOrder, error) {
 		}
 	case http.StatusNoContent:
 		{
+			b, err := io.ReadAll(res.Body)
+			if err != nil {
+				return nil, err
+			}
+			log.Println(b)
+
 			//do nothing
 		}
 	default:

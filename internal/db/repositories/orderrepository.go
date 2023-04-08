@@ -65,7 +65,9 @@ func (r *OrderRepository) GetAllForChecking() ([]*entities.Order, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	row, err := r.db.QueryContext(ctx, "select id, userid, ordernumber, status, accrual, created FROM public.order where status in (0,1)")
+	row, err := r.db.QueryContext(ctx, `
+		select id, userid, ordernumber, status, accrual, created FROM public.order where status in (0,1)
+		`)
 	if err != nil {
 		return nil, err
 	}
