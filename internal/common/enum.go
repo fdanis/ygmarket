@@ -3,6 +3,7 @@ package common
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"strings"
 )
 
@@ -35,6 +36,8 @@ func (o *OrderStatus) UnmarshaJSON(data []byte) error {
 	if err := json.Unmarshal(data, &tmp); err != nil {
 		return err
 	}
+
+	log.Printf("status is %s \n", tmp)
 
 	value, ok := StatusValue[strings.TrimSpace(tmp)]
 	if !ok {
