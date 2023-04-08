@@ -136,7 +136,8 @@ func (r *OrderRepository) Update(data *entities.Order) error {
 	defer tx.Rollback()
 
 	s, err := tx.ExecContext(ctx, `
-		update into public.order 
+		update public.order 
+		set
 			status = $2,
 			accrual =$3
 		where id = $1;
