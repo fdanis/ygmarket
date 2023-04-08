@@ -90,14 +90,19 @@ func (r *OrderRepository) GetAllForChecking() ([]*entities.Order, error) {
 func (r *OrderRepository) Add(data *entities.Order) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	s, err := r.db.ExecContext(ctx, `
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	s, err := tx.ExecContext(ctx, `
 		insert into public.order (userid,ordernumber,status,accrual) values ($1,$2,$3,$4);
-		update public.user
-		set balance = (SELECT coalesce(sum(accrual),0) FROM public.order where userid = $1) - (SELECT coalesce(sum(sum),0) FROM public.withdraw where userid = $1);
 		`, data.UserID, data.Number, data.Status, data.Accrual)
 	if err != nil {
 		return err
 	}
+
 	i, err := s.RowsAffected()
 	if err != nil {
 		return err
@@ -105,6 +110,19 @@ func (r *OrderRepository) Add(data *entities.Order) error {
 	if i == 0 {
 		return errors.New("order was not save")
 	}
+
+	_, err = tx.ExecContext(ctx, `
+	update public.user
+	set balance = coalesce((SELECT sum(coalesce(accrual,0)) FROM public.order where userid = $1),0) - coalesce((SELECT sum(coalesce(sum,0)) FROM public.withdraw where userid = $1),0);
+	`, data.UserID)
+	if err != nil {
+		return err
+	}
+
+	if err = tx.Commit(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -117,20 +135,12 @@ func (r *OrderRepository) Update(data *entities.Order) error {
 	}
 	defer tx.Rollback()
 
-	s, err := r.db.ExecContext(ctx, `
+	s, err := tx.ExecContext(ctx, `
 		update into public.order 
 			status = $2,
 			accrual =$3
 		where id = $1;
 		`, data.ID, data.Status, data.Accrual)
-	if err != nil {
-		return err
-	}
-
-	_, err = tx.ExecContext(ctx, `
-	update public.user
-	set balance = (SELECT coalesce(sum(accrual),0) FROM public.order where userid = $1) - (SELECT coalesce(sum(sum),0) FROM public.withdraw where userid = $1);
-	`, data.UserID)
 	if err != nil {
 		return err
 	}
@@ -141,6 +151,14 @@ func (r *OrderRepository) Update(data *entities.Order) error {
 	}
 	if i == 0 {
 		return errors.New("order was not save")
+	}
+
+	_, err = tx.ExecContext(ctx, `
+	update public.user0
+	set balance = coalesce((SELECT sum(coalesce(accrual,0)) FROM public.order where userid = $1),0) - coalesce((SELECT sum(coalesce(sum,0)) FROM public.withdraw where userid = $1),0);
+	`, data.UserID)
+	if err != nil {
+		return err
 	}
 
 	if err = tx.Commit(); err != nil {

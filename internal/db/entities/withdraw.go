@@ -7,7 +7,7 @@ import (
 type Withdraw struct {
 	ID      int
 	UserID  int
-	Number  string
+	Order   string
 	Sum     float32
 	Created time.Time
 }

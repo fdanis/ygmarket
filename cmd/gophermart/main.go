@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -58,7 +57,6 @@ func runClient(ctx context.Context, client *accrualclient.Client) {
 		select {
 		case <-t.C:
 			{
-				fmt.Println("timer")
 				client.Run(ctx2)
 			}
 		case <-ctx.Done():

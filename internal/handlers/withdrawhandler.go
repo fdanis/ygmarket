@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"errors"
-	"io"
 	"log"
 	"net/http"
 
@@ -28,20 +27,27 @@ func NewWithdrawHandler(userRepository repositories.UserRepository, withdrawRepo
 }
 
 func (h *WithdrawHandler) NewWithdraw(w http.ResponseWriter, r *http.Request) {
-	number, err := io.ReadAll(r.Body)
-	if err != nil {
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+
+	var model models.Withdraw
+	if err := decodeJSONBody(r.Body, r.Header.Get("Content-Encoding"), &model); err != nil {
+		var mr *RequestError
+		if errors.As(err, &mr) {
+			http.Error(w, mr.msg, mr.status)
+		} else {
+			log.Println(err.Error())
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		}
 		return
 	}
 
-	if !helpers.CheckNumber(string(number)) {
+	if !helpers.CheckNumber(string(model.Order)) {
 		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
 		return
 	}
 
 	userid := getUserID(r)
 
-	err = h.withdrawRepository.Add(entities.Withdraw{UserID: userid, Number: string(number), Sum: 10})
+	err := h.withdrawRepository.Add(entities.Withdraw{UserID: userid, Order: string(model.Order), Sum: model.Sum})
 
 	if err != nil {
 		var pgErr *pgconn.PgError
@@ -83,7 +89,7 @@ func (h *WithdrawHandler) GetWithdraw(w http.ResponseWriter, r *http.Request) {
 		model := make([]models.Withdraw, 0, len(withdraw))
 		for _, o := range withdraw {
 			model = append(model, models.Withdraw{
-				Number:      o.Number,
+				Order:       o.Order,
 				Sum:         o.Sum,
 				ProcessedAt: o.Created,
 			})

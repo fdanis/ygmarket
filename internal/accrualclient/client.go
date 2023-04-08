@@ -27,7 +27,6 @@ func (c *Client) Run(ctx context.Context) {
 	if err != nil {
 		log.Printf("get order for checking %v\n", err)
 	}
-	fmt.Println(len(orders))
 	for _, v := range orders {
 		select {
 		case <-ctx.Done():
@@ -83,7 +82,6 @@ func (c *Client) Send(number string) (*models.Order, error) {
 	case http.StatusNoContent:
 		{
 			//do nothing
-			log.Println("nocontent")
 		}
 	default:
 		{
