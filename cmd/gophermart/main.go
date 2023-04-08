@@ -49,7 +49,7 @@ func main() {
 }
 
 func runClient(ctx context.Context, client *accrualclient.Client) {
-	t := time.NewTicker(time.Second * 5)
+	t := time.NewTicker(time.Second)
 	ctx2, cancel := context.WithCancel(ctx)
 	defer cancel()
 
