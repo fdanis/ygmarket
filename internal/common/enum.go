@@ -16,13 +16,13 @@ const (
 )
 
 var (
-	Status_name = map[uint8]string{
+	StatusName = map[uint8]string{
 		0: "NEW",
 		1: "PROCESSING",
 		2: "INVALID",
 		3: "PROCESSED",
 	}
-	Status_value = map[string]uint8{
+	StatusValue = map[string]uint8{
 		"NEW":        0,
 		"PROCESSING": 1,
 		"INVALID":    2,
@@ -36,7 +36,7 @@ func (o *OrderStatus) UnmarshaJSON(data []byte) error {
 		return err
 	}
 
-	value, ok := Status_value[strings.TrimSpace(tmp)]
+	value, ok := StatusValue[strings.TrimSpace(tmp)]
 	if !ok {
 		return fmt.Errorf("%q is not a valid status", tmp)
 	}
@@ -45,7 +45,7 @@ func (o *OrderStatus) UnmarshaJSON(data []byte) error {
 }
 
 func (s *OrderStatus) MarshalJSON() ([]byte, error) {
-	if v, ok := Status_name[uint8(*s)]; ok {
+	if v, ok := StatusName[uint8(*s)]; ok {
 		return json.Marshal(v)
 	}
 	return json.Marshal(0)
