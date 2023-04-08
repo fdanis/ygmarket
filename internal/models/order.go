@@ -18,40 +18,17 @@ type Order struct {
 func (o *Order) MarshalJSON() ([]byte, error) {
 	type Alias Order
 
-	var status string
 	var accrual string
-
-	switch o.Status {
-	case common.NEW:
-		{
-			status = "NEW"
-		}
-	case common.PROCESSING:
-		{
-			status = "PROCESSING"
-		}
-	case common.PROCESSED:
-		{
-			status = "PROCESSED"
-			accrual = fmt.Sprintf("%.3f", o.Accrual)
-		}
-	case common.INVALID:
-		{
-			status = "INVALID"
-		}
-	default:
-		status = "NEW"
+	if o.Status == common.PROCESSED || o.Accrual > 0 {
+		accrual = fmt.Sprintf("%.3f", o.Accrual)
 	}
-
 	return json.Marshal(&struct {
 		*Alias
-		Status   string `json:"status"`
 		Accrual  string `json:"accrual,omitempty"`
 		LastSeen string `json:"uploaded_at"`
 	}{
 		LastSeen: o.UploadedAt.Format(time.RFC3339),
 		Accrual:  accrual,
-		Status:   status,
 		Alias:    (*Alias)(o),
 	})
 }

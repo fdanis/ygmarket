@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/fdanis/yg-loyalsys/internal/app"
 	"github.com/fdanis/yg-loyalsys/internal/db/entities"
 	"github.com/fdanis/yg-loyalsys/internal/db/repositories"
 	"github.com/fdanis/yg-loyalsys/internal/helpers"
@@ -20,7 +19,7 @@ type WithdrawHandler struct {
 	withdrawRepository repositories.WithdrawRepository
 }
 
-func NewWithdrawHandler(app *app.App, userRepository repositories.UserRepository, withdrawRepository repositories.WithdrawRepository) WithdrawHandler {
+func NewWithdrawHandler(userRepository repositories.UserRepository, withdrawRepository repositories.WithdrawRepository) WithdrawHandler {
 	result := WithdrawHandler{
 		userRepository:     userRepository,
 		withdrawRepository: withdrawRepository,

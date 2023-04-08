@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -9,22 +10,16 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/fdanis/yg-loyalsys/internal/accrualclient"
 	"github.com/fdanis/yg-loyalsys/internal/app"
-	"github.com/fdanis/yg-loyalsys/internal/db/driver"
 	"github.com/fdanis/yg-loyalsys/internal/routes"
 )
 
 func main() {
 	a := app.NewApp()
-
-	db, err := driver.ConnectSQL(a.Config.ConnectionString)
-	if err != nil {
-		panic(err)
-	}
-	defer db.Close()
 	server := &http.Server{
 		Addr:    a.Config.Address,
-		Handler: routes.Routes(&a, db),
+		Handler: routes.Routes(&a),
 	}
 
 	sig := make(chan os.Signal, 1)
@@ -34,6 +29,15 @@ func main() {
 			log.Fatalf("listen: %s\n", err)
 		}
 	}()
+
+	client, err := accrualclient.NewClient(a.Config.AccrualSystemAddress, a.OrderRepository)
+	if err != nil {
+		log.Fatalf("create accrual client %v \n", err)
+	}
+	ctxClient, cancelClient := context.WithCancel(context.Background())
+	defer cancelClient()
+	go runClient(ctxClient, client)
+
 	log.Printf("server started at %s\n", a.Config.Address)
 	<-sig
 	log.Print("server stopped")
@@ -42,5 +46,23 @@ func main() {
 	defer cancel()
 	if err := server.Shutdown(ctx); err != nil {
 		log.Fatalf("Server Shutdown Failed:%+v", err)
+	}
+}
+
+func runClient(ctx context.Context, client *accrualclient.Client) {
+	t := time.NewTicker(time.Second * 5)
+	ctx2, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	for {
+		select {
+		case <-t.C:
+			{
+				fmt.Println("timer")
+				client.Run(ctx2)
+			}
+		case <-ctx.Done():
+			t.Stop()
+		}
 	}
 }

@@ -11,16 +11,11 @@ import (
 )
 
 type OrderRepository struct {
-	db         *sql.DB
-	insertStmt *sql.Stmt
+	db *sql.DB
 }
 
 func NewOrderRepository(d *sql.DB) OrderRepository {
-	insertStmt, err := d.PrepareContext(context.TODO(), "insert into public.order (userid,ordernumber,status,accrual) values ($1,$2,$3,$4)")
-	if err != nil {
-		log.Fatal("can not create statement for OrderRepository")
-	}
-	return OrderRepository{db: d, insertStmt: insertStmt}
+	return OrderRepository{db: d}
 }
 
 func (r *OrderRepository) GetByNumber(number string) (*entities.Order, error) {
@@ -66,10 +61,40 @@ func (r *OrderRepository) GetAllByUser(id int) ([]*entities.Order, error) {
 	return res, nil
 }
 
-func (r *OrderRepository) Add(data entities.Order) error {
+func (r *OrderRepository) GetAllForChecking() ([]*entities.Order, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	s, err := r.insertStmt.ExecContext(ctx, data.UserID, data.Number, data.Status, data.Accrual)
+
+	row, err := r.db.QueryContext(ctx, "select id, userid, ordernumber, status, accrual, created FROM public.order where status in (0,1)")
+	if err != nil {
+		return nil, err
+	}
+	defer row.Close()
+
+	res := make([]*entities.Order, 0)
+	for row.Next() {
+		o := &entities.Order{}
+		err = row.Scan(&o.ID, &o.UserID, &o.Number, &o.Status, &o.Accrual, &o.Created)
+		if err != nil {
+			return nil, err
+		}
+		res = append(res, o)
+	}
+	err = row.Err()
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+func (r *OrderRepository) Add(data *entities.Order) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	s, err := r.db.ExecContext(ctx, `
+		insert into public.order (userid,ordernumber,status,accrual) values ($1,$2,$3,$4);
+		update public.user
+		set balance = (SELECT coalesce(sum(accrual),0) FROM public.order where userid = $1) - (SELECT coalesce(sum(sum),0) FROM public.withdraw where userid = $1);
+		`, data.UserID, data.Number, data.Status, data.Accrual)
 	if err != nil {
 		return err
 	}
@@ -80,5 +105,47 @@ func (r *OrderRepository) Add(data entities.Order) error {
 	if i == 0 {
 		return errors.New("order was not save")
 	}
+	return nil
+}
+
+func (r *OrderRepository) Update(data *entities.Order) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	s, err := r.db.ExecContext(ctx, `
+		update into public.order 
+			status = $2,
+			accrual =$3
+		where id = $1;
+		`, data.ID, data.Status, data.Accrual)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.ExecContext(ctx, `
+	update public.user
+	set balance = (SELECT coalesce(sum(accrual),0) FROM public.order where userid = $1) - (SELECT coalesce(sum(sum),0) FROM public.withdraw where userid = $1);
+	`, data.UserID)
+	if err != nil {
+		return err
+	}
+
+	i, err := s.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if i == 0 {
+		return errors.New("order was not save")
+	}
+
+	if err = tx.Commit(); err != nil {
+		return err
+	}
+
 	return nil
 }

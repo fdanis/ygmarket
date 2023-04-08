@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/fdanis/yg-loyalsys/internal/app"
 	"github.com/fdanis/yg-loyalsys/internal/db/entities"
 	"github.com/fdanis/yg-loyalsys/internal/db/repositories"
 	"github.com/fdanis/yg-loyalsys/internal/helpers"
@@ -19,7 +18,7 @@ type OrderHandler struct {
 	orderRepository repositories.OrderRepository
 }
 
-func NewOrderHandler(app *app.App, orderRepository repositories.OrderRepository) OrderHandler {
+func NewOrderHandler(orderRepository repositories.OrderRepository) OrderHandler {
 	result := OrderHandler{
 		orderRepository: orderRepository,
 	}
@@ -40,7 +39,7 @@ func (h *OrderHandler) NewOrder(w http.ResponseWriter, r *http.Request) {
 
 	userid := getUserID(r)
 
-	err = h.orderRepository.Add(entities.Order{UserID: userid, Number: string(number), Status: 0})
+	err = h.orderRepository.Add(&entities.Order{UserID: userid, Number: string(number), Status: 0})
 
 	if err != nil {
 		var pgErr *pgconn.PgError

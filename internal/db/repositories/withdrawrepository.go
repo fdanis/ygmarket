@@ -52,10 +52,6 @@ func (r *WithdrawRepository) Add(data entities.Withdraw) error {
 	}
 	defer tx.Rollback()
 
-	_, err = tx.ExecContext(ctx, "update public.user set balance = balance - $2, withdrawn = withdrawn + $2 where id = $1", data.UserID, data.Sum)
-	if err != nil {
-		return err
-	}
 	_, err = r.db.ExecContext(ctx, `
 				insert into public.withdraw
 			(userid, ordernumber, sum)
@@ -64,6 +60,18 @@ func (r *WithdrawRepository) Add(data entities.Withdraw) error {
 	if err != nil {
 		return err
 	}
+
+	_, err = tx.ExecContext(ctx, `
+	update public.user
+	set 
+		balance = (SELECT coalesce(sum(accrual),0) FROM public.order where userid = $1) - (SELECT coalesce(sum(sum),0) FROM public.withdraw where userid = $1),
+		withdrawn = (SELECT coalesce(sum(sum),0) FROM public.withdraw where userid = $1);
+	
+	`, data.UserID)
+	if err != nil {
+		return err
+	}
+
 	if err = tx.Commit(); err != nil {
 		return err
 	}

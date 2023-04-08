@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/fdanis/yg-loyalsys/internal/app"
 	"github.com/fdanis/yg-loyalsys/internal/common"
 	"github.com/fdanis/yg-loyalsys/internal/db/entities"
 	"github.com/fdanis/yg-loyalsys/internal/db/repositories"
@@ -21,12 +20,11 @@ type UserHandler struct {
 	secretKey      string
 }
 
-func NewUserHandler(app *app.App, userRepository repositories.UserRepository) UserHandler {
+func NewUserHandler(secretKey string, userRepository repositories.UserRepository) UserHandler {
 	result := UserHandler{
 		userRepository: userRepository,
-		secretKey:      app.Config.SecretKey,
+		secretKey:      secretKey,
 	}
-
 	return result
 }
 
