@@ -44,8 +44,8 @@ func (o *OrderStatus) UnmarshaJSON(data []byte) error {
 	return nil
 }
 
-func (s *OrderStatus) MarshalJSON() ([]byte, error) {
-	if v, ok := StatusName[uint8(*s)]; ok {
+func (o *OrderStatus) MarshalJSON() ([]byte, error) {
+	if v, ok := StatusName[uint8(*o)]; ok {
 		return json.Marshal(v)
 	}
 	return json.Marshal(0)

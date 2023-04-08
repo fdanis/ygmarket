@@ -51,7 +51,7 @@ func (c *Client) Run(ctx context.Context) {
 }
 
 func (c *Client) Send(number string) (*models.Order, error) {
-	res, err := http.Get(fmt.Sprintf("%s/api/orders/%s", c.address, number))
+	res, err := http.Post(fmt.Sprintf("%s/api/orders/%s", c.address, number))
 	if err != nil {
 		log.Println(err)
 		return nil, err
