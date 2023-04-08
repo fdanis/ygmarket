@@ -32,7 +32,6 @@ func (c *Client) Run(ctx context.Context) {
 		case <-ctx.Done():
 		default:
 			{
-				log.Printf("was sended %s", v.Number)
 				m, err := c.Send(v.Number)
 				if err != nil {
 					log.Printf("send order number %s : %v\n", v.Number, err)
@@ -44,7 +43,11 @@ func (c *Client) Run(ctx context.Context) {
 				if v.Status != m.Status {
 					v.Status = m.Status
 					v.Accrual = m.Accrual
-					c.orderRepository.Update(v)
+					err = c.orderRepository.Update(v)
+					if err != nil {
+						log.Printf("write to db  %s : %v\n", v.Number, err)
+						continue
+					}
 				}
 			}
 		}
