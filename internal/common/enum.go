@@ -31,7 +31,7 @@ var (
 	}
 )
 
-func (o *OrderStatus) UnmarshaJSON(data []byte) error {
+func (o *OrderStatus) UnmarshalJSON(data []byte) error {
 	log.Println(string(data))
 	var tmp string
 	if err := json.Unmarshal(data, &tmp); err != nil {
