@@ -26,7 +26,7 @@ func (r *UserRepository) GetByLogin(login string) (*entities.User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	row := r.db.QueryRowContext(ctx, "select id, login, password,withdrawn,balance FROM public.user where login = $1 limit 1", login)
+	row := r.db.QueryRowContext(ctx, "select id, login, password, withdrawn, balance FROM public.user where login = $1 limit 1", login)
 	m := entities.User{}
 	err := row.Scan(&m.ID, &m.Login, &m.Password, &m.Withdrawn, &m.Balance)
 	if err == sql.ErrNoRows {
@@ -41,7 +41,7 @@ func (r *UserRepository) GetByLogin(login string) (*entities.User, error) {
 func (r *UserRepository) GetByID(id int) (*entities.User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	row := r.db.QueryRowContext(ctx, "select id, login, password,withdrawn,balance FROM public.user where id = $1 limit 1", id)
+	row := r.db.QueryRowContext(ctx, "select id, login, password, withdrawn, balance FROM public.user where id = $1 limit 1", id)
 	m := entities.User{}
 	err := row.Scan(&m.ID, &m.Login, &m.Password, &m.Withdrawn, &m.Balance)
 	if err == sql.ErrNoRows {

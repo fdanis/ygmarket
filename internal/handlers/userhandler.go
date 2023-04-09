@@ -112,6 +112,8 @@ func (h *UserHandler) Balance(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 	}
+
+	log.Printf("%v\n", user)
 	responseJSON(w, struct {
 		current   float32
 		withdrawn float32
