@@ -23,35 +23,34 @@ func (a *AuthorizeMiddleware) Authorize(next http.Handler) http.Handler {
 		if authHeader == "" {
 			unauthorized(w)
 			return
-		} else {
-			jwtToken := authHeader
-			token, err := jwt.Parse(jwtToken, func(token *jwt.Token) (interface{}, error) {
-				if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-					return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-				}
-				return []byte(a.secretKey), nil
-			})
+		}
+		jwtToken := authHeader
+		token, err := jwt.Parse(jwtToken, func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+			}
+			return []byte(a.secretKey), nil
+		})
+		if err != nil {
+			unauthorized(w)
+			return
+		}
+
+		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+			err := claims.Valid()
 			if err != nil {
 				unauthorized(w)
 				return
 			}
-
-			if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-				err := claims.Valid()
-				if err != nil {
-					unauthorized(w)
-					return
-				}
-				c := common.UserClaims{
-					Login: claims["Login"].(string),
-					ID:    int(claims["ID"].(float64)),
-				}
-				ctx := context.WithValue(r.Context(), common.Auth, c)
-				next.ServeHTTP(w, r.WithContext(ctx))
-			} else {
-				unauthorized(w)
-				return
+			c := common.UserClaims{
+				Login: claims["Login"].(string),
+				ID:    int(claims["ID"].(float64)),
 			}
+			ctx := context.WithValue(r.Context(), common.Auth, c)
+			next.ServeHTTP(w, r.WithContext(ctx))
+		} else {
+			unauthorized(w)
+			return
 		}
 	})
 }

@@ -9,10 +9,10 @@ import (
 type OrderStatus uint8
 
 const (
-	NEW        OrderStatus = 0
-	PROCESSING OrderStatus = 1
-	INVALID    OrderStatus = 2
-	PROCESSED  OrderStatus = 3
+	New        OrderStatus = 0
+	Processing OrderStatus = 1
+	Invalid    OrderStatus = 2
+	Processed  OrderStatus = 3
 )
 
 var (
