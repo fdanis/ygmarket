@@ -66,7 +66,7 @@ func (r *WithdrawRepository) Add(data entities.Withdraw) error {
 	set 
 		balance = coalesce((SELECT sum(coalesce(accrual,0)) FROM public.order where userid = $1),0) - coalesce((SELECT sum(coalesce(sum,0)) FROM public.withdraw where userid = $1),0),
 		withdrawn = coalesce((SELECT sum(coalesce(sum,0)) FROM public.withdraw where userid = $1),0)
-	where id = where id = $1;
+	where id = $1;
 	
 	`, data.UserID)
 	if err != nil {
