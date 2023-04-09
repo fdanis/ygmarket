@@ -27,7 +27,6 @@ func NewWithdrawHandler(userRepository repositories.UserRepository, withdrawRepo
 }
 
 func (h *WithdrawHandler) NewWithdraw(w http.ResponseWriter, r *http.Request) {
-
 	var model models.Withdraw
 	if err := decodeJSONBody(r.Body, r.Header.Get("Content-Encoding"), &model); err != nil {
 		var mr *RequestError
