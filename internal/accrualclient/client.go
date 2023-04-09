@@ -41,6 +41,7 @@ func (c *Client) Run(ctx context.Context) {
 				if m == nil {
 					continue
 				}
+				log.Printf("got order %v \n", m)
 				if v.Status != m.Status {
 					v.Status = m.Status
 					v.Accrual = m.Accrual
@@ -49,6 +50,7 @@ func (c *Client) Run(ctx context.Context) {
 						log.Printf("write to db  %s : %v\n", v.Number, err)
 						continue
 					}
+					log.Printf("was updated %v \n", m)
 				}
 			}
 		}
