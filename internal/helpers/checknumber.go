@@ -1,23 +1,22 @@
 package helpers
 
 func CheckNumber(cardnumber string) bool {
-	len := len(cardnumber) // узнаем длину номера карты
-	number := 0            // текущая цифра в цикле (см. ниже)
+	len := len(cardnumber)
+	number := 0
 	sum := 0
 
-	for i := 0; i < len; i++ { // главный цикл, в процессе которого проверяется валидность номера карты
-		number = int(cardnumber[i] - '0') // переводим цифру из char в int
-		if i%2 == len%2 {                 // если позиция цифры чётная, то:
-			number *= 2     // умножаем цифру на 2
-			if number > 9 { // согласно алгоритму, ни одно число не должно быть больше 9
-				number -= 9 // второй вариант сведения к единичному разряду
+	for i := 0; i < len; i++ {
+		number = int(cardnumber[i] - '0')
+		if i%2 == len%2 {
+			number *= 2
+			if number > 9 {
+				number -= 9
 			}
 		}
-		sum += number  // прибавляем к sum номера согласно алгоритму
-		if sum >= 10 { // если сумма больше либо 10
-			sum -= 10 // вычитаем из суммы 10, т. к. последняя цифра не изменится
+		sum += number
+		if sum >= 10 {
+			sum -= 10
 		}
 	}
-	//return sum == 0 // вернуть, равна ли последняя цифра нулю
 	return sum%10 == 0
 }
