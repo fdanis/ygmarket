@@ -70,6 +70,8 @@ func (h *WithdrawHandler) NewWithdraw(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			w.Write([]byte("server error"))
 			return
+		} else {
+			log.Println(err)
 		}
 	}
 }
