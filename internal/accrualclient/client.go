@@ -41,7 +41,6 @@ func (c *Client) Run(ctx context.Context) {
 				if m == nil {
 					continue
 				}
-				log.Printf("got order %v \n", m)
 				if v.Status != m.Status {
 					v.Status = m.Status
 					v.Accrual = m.Accrual
@@ -50,7 +49,6 @@ func (c *Client) Run(ctx context.Context) {
 						log.Printf("write to db  %s : %v\n", v.Number, err)
 						continue
 					}
-					log.Printf("was updated %v \n", m)
 				}
 			}
 		}
@@ -58,28 +56,17 @@ func (c *Client) Run(ctx context.Context) {
 }
 
 func (c *Client) Send(number string) (*models.AccrualOrder, error) {
-
-	log.Printf("send %s \n", number)
 	res, err := http.Get(fmt.Sprintf("%s/api/orders/%s", c.address, number))
 	if err != nil {
-
-		log.Printf("err %s \n", number)
-
 		log.Println(err)
 		return nil, err
 	}
 	switch res.StatusCode {
 	case http.StatusOK:
 		{
-			var order models.AccrualOrder
 			defer res.Body.Close()
-
-			b, err := io.ReadAll(res.Body)
-			if err != nil {
-				return nil, err
-			}
-			log.Println(string(b))
-			err = json.Unmarshal(b, &order)
+			var order models.AccrualOrder
+			err := json.NewDecoder(res.Body).Decode(&order)
 			if err != nil {
 				return nil, err
 			}
@@ -104,8 +91,6 @@ func (c *Client) Send(number string) (*models.AccrualOrder, error) {
 				return nil, err
 			}
 			log.Println(string(b))
-
-			//do nothing
 		}
 	default:
 		{
