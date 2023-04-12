@@ -41,7 +41,8 @@ func (c *Client) Run(ctx context.Context) {
 				if m == nil {
 					continue
 				}
-				if v.Status != m.Status {
+				if v.Status == m.Status {
+				    continue
 					v.Status = m.Status
 					v.Accrual = m.Accrual
 					err = c.orderRepository.Update(v)
