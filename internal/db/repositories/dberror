@@ -1,0 +1,11 @@
+package repositories
+
+type DbError struct {
+	status     int
+	HttpStatus int
+	Msg        string
+}
+
+func (err *DbError) Error() string {
+	return err.Msg
+}
