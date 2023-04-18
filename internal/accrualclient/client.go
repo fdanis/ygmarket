@@ -42,14 +42,14 @@ func (c *Client) Run(ctx context.Context) {
 					continue
 				}
 				if v.Status == m.Status {
-				    continue
-					v.Status = m.Status
-					v.Accrual = m.Accrual
-					err = c.orderRepository.Update(v)
-					if err != nil {
-						log.Printf("write to db  %s : %v\n", v.Number, err)
-						continue
-					}
+					continue
+				}
+				v.Status = m.Status
+				v.Accrual = m.Accrual
+				err = c.orderRepository.Update(v)
+				if err != nil {
+					log.Printf("write to db  %s : %v\n", v.Number, err)
+					continue
 				}
 			}
 		}
